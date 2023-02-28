@@ -58,7 +58,7 @@
         text-slate rounded-sm"
         style="border: none;"
         v-show="done"
-        @click="msg = ''"
+        @click="clear()"
       >
         <svg data-hk="s00-4-1-0" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M8 20v-5h2v5h9v-7H5v7h3zm-4-9h16V8h-6V4h-4v4H4v3zM3 21v-8H2V7a1 1 0 0 1 1-1h5V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3h5a1 1 0 0 1 1 1v6h-1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"></path></svg>
       </button>
@@ -67,7 +67,7 @@
       <p class="mt-6 text-sm text-slate">
         <span class="pr-1">Made by</span>
         <a href="https://crooi.io" target="_blank">CRooi</a>
-        <span class="pr-1">&nbsp;|&nbsp;</span>
+        <span class="pr-1">&nbsp;|</span>
         <a href="https://github.com/CRooi/AnswerGPT" target="_blank">Source Code</a>
       </p>
     </div>
@@ -139,6 +139,11 @@ function onEnterKey(event: any) {
   if (event.keyCode === 13 || event.key === 'Enter') {
     gpt()
   }
+}
+
+function clear() {
+  msg.value = ''
+  guideShow.value = true
 }
 
 setInterval(() => {
