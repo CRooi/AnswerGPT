@@ -5,7 +5,7 @@
       <span class="text-2xl text-slate font-extrabold mr-1">Answer</span>
       <span class="text-2xl text-transparent font-extrabold bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-600">GPT</span>
     </div>
-    <p class="text-slate mt-1 op-60">Question answer tool based on OpenAI API.</p>
+    <p class="text-slate mt-1 op-60">Question answer tool based on OpenAI ChatGPT API (gpt-3.5-turbo-0301).</p>
     <section class="grid grid-cols-1 md:grid-cols-3 gap-2 my-6 op-60 text-slate text-sm" v-show="guideShow">
       <div class="bg-slate bg-opacity-15 p-6 rounded-md flex gap-3 md:flex-col items-center md:justify-center">
         <div class="px-4 py-2 text-xl font-extrabold bg-light-50 bg-op-10 rounded-lg">1</div>
@@ -81,6 +81,8 @@ let input = ref('')
 let msg = ref('')
 let done = ref(true as boolean)
 let guideShow = ref(true as boolean)
+let users: any = []
+let assistants: any = []
 
 let gpt = async () => {
   done.value = false
@@ -90,18 +92,19 @@ let gpt = async () => {
   input.value = ''
   document.getElementById('input')!.blur()
   let es = await fetch(
-    "https://api.openai.com/v1/completions",
+    "https://gptapi.crooi.io/v1/chat/completions",
     {
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + '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',
+        Authorization: "Bearer " + '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',
       },
       method: "POST",
       body: JSON.stringify({
-        model: 'text-davinci-003',
-        prompt: prompt,
-        temperature: 0.6,
-        max_tokens: 1200,
+        model: 'gpt-3.5-turbo-0301',
+        // prompt: prompt,
+        // temperature: 0.6,
+        // max_tokens: 1200,
+        messages: [{"role": "user", "content": prompt}],
         stream: true,
       }),
     }
@@ -116,20 +119,50 @@ let gpt = async () => {
       break
     }
     done.value = false
-    getMsg(res?.value)
+    let chunk: any = res?.value
+    chunk = chunk.replace(/data: /g, '').split('\n')
+    chunk.map((item:any, index:any)=>{
+      if(item != '[DONE]' && item != '') {
+        let json = JSON.parse(item)
+        if(json.choices[0].delta.content == undefined) return
+        json.choices[0].delta.content = json.choices[0].delta.content.replace(/\n/g, '<br>')
+        json.choices[0].delta.content = json.choices[0].delta.content.replace(/ /g, '&nbsp;')
+        msg.value += json.choices[0].delta.content
+      }else if(item == '[DONE]') {
+        msg.value += '<br><br>'
+      }
+    })
   }
 }
+
+// function getMsg(chunk:any) {
+//   chunk = chunk.replace(/data: /g, '')
+//   chunk = chunk.split('\n')
+//   for(let i = 0; i < chunk.length; i++) {
+//     if(chunk[i] != '[DONE]' && chunk[i] != '') {
+//       let json = JSON.parse(chunk[i])
+//       json.choices[0].text = json.choices[0].text.replace(/\n/g, '<br>')
+//       json.choices[0].text = json.choices[0].text.replace(/ /g, '&nbsp;')
+//       msg.value += json.choices[0].text
+//     }else if(chunk[i] == '[DONE]'){
+//       msg.value += '<br><br>'
+//     }
+//   }
+// }
 
 function getMsg(chunk:any) {
   chunk = chunk.replace(/data: /g, '')
   chunk = chunk.split('\n')
+
   for(let i = 0; i < chunk.length; i++) {
-    if(chunk[i] != '[DONE]' && chunk[i] != '') {
-      let json = JSON.parse(chunk[i])
-      json.choices[0].text = json.choices[0].text.replace(/\n/g, '<br>')
-      json.choices[0].text = json.choices[0].text.replace(/ /g, '&nbsp;')
-      msg.value += json.choices[0].text
-    }else if(chunk[i] == '[DONE]'){
+    if(chunk[i] == '') return
+    let json = JSON.parse(chunk[i])
+    if(json == '' || json == undefined || json.choices[0].delta.content == undefined) return
+    if(json.choices[0].finish_reason != 'stop') {
+      json.choices[0].delta.content = json.choices[0].delta.content.replace(/\n/g, '<br>')
+      json.choices[0].delta.content = json.choices[0].delta.content.replace(/ /g, '&nbsp;')
+      msg.value += json.choices[0].delta.content
+    }else{
       msg.value += '<br><br>'
     }
   }
@@ -147,6 +180,10 @@ function clear() {
 }
 
 setInterval(() => {
+  // msg.value = msg.value.replace(/🤖️&nbsp;？<br><br><br>/g, '🤖️&nbsp;')
+  // msg.value = msg.value.replace(/🤖️&nbsp;？<br><br>/g, '🤖️&nbsp;')
+  // msg.value = msg.value.replace(/🤖️&nbsp;？<br>/g, '🤖️&nbsp;')
+  // msg.value = msg.value.replace(/🤖️&nbsp;？/g, '🤖️&nbsp;')
   msg.value = msg.value.replace(/🤖️&nbsp;<br><br><br><br>/g, '🤖️&nbsp;')
   msg.value = msg.value.replace(/🤖️&nbsp;<br><br><br>/g, '🤖️&nbsp;')
   msg.value = msg.value.replace(/🤖️&nbsp;<br><br>/g, '🤖️&nbsp;')
