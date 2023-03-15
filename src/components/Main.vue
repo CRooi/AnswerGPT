@@ -96,7 +96,7 @@ let gpt = async () => {
     {
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + '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',
+        Authorization: "Bearer " + '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',
       },
       method: "POST",
       body: JSON.stringify({
@@ -161,6 +161,8 @@ function getMsg(chunk:any) {
     if(json.choices[0].finish_reason != 'stop') {
       json.choices[0].delta.content = json.choices[0].delta.content.replace(/\n/g, '<br>')
       json.choices[0].delta.content = json.choices[0].delta.content.replace(/ /g, '&nbsp;')
+      json.choices[0].delta.content = json.choices[0].delta.content.replace(/</g, '&lt;')
+      json.choices[0].delta.content = json.choices[0].delta.content.replace(/>/g, '&gt;')
       msg.value += json.choices[0].delta.content
     }else{
       msg.value += '<br><br>'
